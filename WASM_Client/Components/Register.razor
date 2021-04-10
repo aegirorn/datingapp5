@@ -1,0 +1,55 @@
+﻿@inject NavigationManager NavigationManager
+@inject HttpClient Http
+@inject IAccountService AccountService
+
+<EditForm Model="@exampleModel" OnValidSubmit="@HandleValidSubmit">
+    <h2 class="text-center text-primary">Sign up</h2>
+    <hr>
+    <DataAnnotationsValidator />
+    <div class="form-group">
+        <InputText @bind-Value="exampleModel.Username" placeholder="Username" class="form-control" />
+        <ValidationMessage For="@(() => exampleModel.Username)" />
+    </div>
+
+    <div class="form-group">
+        <InputText @bind-Value="exampleModel.Password" type="password" placeholder="Password" class="form-control" />
+        <ValidationMessage For="@(() => exampleModel.Password)" />
+    </div>
+
+    <div class="form-group text-center">
+        <button class="btn btn-success mr-2" type="submit">Register</button>
+        <button class="btn btn-outline-secondary mr-2" type="button" @onclick="@CancelClick">Cancel</button>
+    </div>
+</EditForm>
+
+
+@code {
+    [Parameter]
+    public EventCallback OnCancelCallback { get; set; }
+
+    private AddUser exampleModel = new AddUser();
+
+
+    private async Task CancelClick()
+    {
+        await OnCancelCallback.InvokeAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        Login value = new();
+        value.username = "bob";
+        value.password = "1234";
+
+        value.username = "eirikur";
+        value.password = "1234";
+
+        HttpResponseMessage response = await Http.PostAsync($"account/register", new StringContent(JsonSerializer.Serialize(value), Encoding.UTF8, "application/json"));
+
+        if (response.IsSuccessStatusCode)
+        {
+            var user = await response.Content.ReadFromJsonAsync<UserModel>();
+            await AccountService.SetUser(user);
+        }
+    }
+}

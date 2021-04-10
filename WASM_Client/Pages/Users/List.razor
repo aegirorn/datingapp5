@@ -1,0 +1,73 @@
+﻿@page "/Users/List"
+@inject HttpClient Http
+@inject NavigationManager navigationManager
+@inject IAccountService AccountService
+@inject AppState AppState
+
+@using System.Text
+@using System.Text.Json
+
+<h3>List</h3>
+
+@if (string.IsNullOrWhiteSpace(errorString) == false)
+{
+    <h4>System Error</h4>
+    <p>@errorString</p>
+}
+else if (user is null)
+{
+    <h4>Loading...</h4>
+}
+else
+{
+    <table class="table table-striped">
+        <thead class="thead-dark">
+            <tr>
+                <th>Token</th>
+                <th>User Name</th>
+            </tr>
+        </thead>
+        <tbody>
+            @*@foreach (var user in userList)
+                {*@
+            <tr>
+                <td>@user.token</td>
+                <td>@user.username</td>
+            </tr>
+            @*}*@
+        </tbody>
+    </table>
+}
+
+@code {
+    private List<UserModel> userList;
+
+    private UserModel user;
+
+
+    private string errorString;
+
+    protected override async Task OnInitializedAsync()
+    {
+        //HttpResponseMessage response = await Http.GetAsync($"users");
+
+        Login value = new();
+        value.username = "bob";
+        value.password = "1234";
+
+
+        HttpResponseMessage response = await Http.PostAsync($"account/login", new StringContent(JsonSerializer.Serialize(value), Encoding.UTF8, "application/json"));
+
+        if (response.IsSuccessStatusCode)
+        {
+            user = await response.Content.ReadFromJsonAsync<UserModel>();
+            await AccountService.SetUser(user);
+            AppState.UpdatingLoggedInState();
+            navigationManager.NavigateTo("/");
+        }
+        else
+        {
+            errorString = response.ReasonPhrase;
+        }
+    }
+}

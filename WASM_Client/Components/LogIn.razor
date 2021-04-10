@@ -1,0 +1,43 @@
+﻿@inject NavigationManager NavigationManager
+@inject HttpClient Http
+@inject IAccountService AccountService
+@inject AppState AppState
+
+<EditForm Model="@loginModel" OnValidSubmit="@HandleValidSubmit">
+    <h2 class="text-center text-primary">Log In</h2>
+    <hr>
+    <DataAnnotationsValidator />
+    <div class="form-group">
+        <InputText @bind-Value="loginModel.username" placeholder="Username" class="form-control" />
+        <ValidationMessage For="@(() => loginModel.username)" />
+    </div>
+
+    <div class="form-group">
+        <InputText @bind-Value="loginModel.password" type="password" placeholder="Password" class="form-control" />
+        <ValidationMessage For="@(() => loginModel.password)" />
+    </div>
+
+    <div class="form-group text-center">
+        <button class="btn btn-success mr-2" type="submit">Log In</button>
+        <button class="btn btn-outline-secondary mr-2" type="button" @onclick="@CancelClick">Cancel</button>
+    </div>
+</EditForm>
+
+
+@code {
+    [Parameter]
+    public EventCallback OnCancelCallback { get; set; }
+
+    private Login loginModel = new Login();
+
+
+    private async Task CancelClick()
+    {
+        await OnCancelCallback.InvokeAsync();
+    }
+
+    private async Task HandleValidSubmit()
+    {
+        await AccountService.Login(loginModel);
+    }
+}
